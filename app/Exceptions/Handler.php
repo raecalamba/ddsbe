@@ -28,6 +28,7 @@ class Handler extends ExceptionHandler
         ModelNotFoundException::class,
         ValidationException::class,
     ];
+
     /**
      * Report or log an exception.
      *
@@ -42,6 +43,7 @@ class Handler extends ExceptionHandler
     {
         parent::report($exception);
     }
+
     /**
      * Render an exception into an HTTP response.
      *
@@ -53,45 +55,57 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        return parent::render($request, $exception);
+
     // http not found 
     if ($exception instanceof HttpException) { $code = $exception->getStatusCode();
-    $message = Response::$statusTexts[$code];
+        $message = Response::$statusTexts[$code];
 
-    return $this->errorResponse($message, $code);
+        return $this->errorResponse($message, $code);
     }
-    // instance not found
+
+    // instance not found ID
     if ($exception instanceof ModelNotFoundException) {
-    $model = strtolower(class_basename($exception->getModel()));
+        $model = strtolower(class_basename($exception->getModel()));
 
-    return $this->errorResponse("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
-    }
-    // validation exception
-    if ($exception instanceof ValidationException) {
-    $errors = $exception->validator->errors()->getMessages();
-    return $this->errorResponse($errors, 
-
-   Response::HTTP_UNPROCESSABLE_ENTITY);
+        return $this->errorResponse("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
     }
 
+    // validation exception FOR RULES
+    if ($exception instanceof ValidationException) 
+    {
+        $errors = $exception->validator->errors()->getMessages();
+        return $this->errorResponse($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+    
     // access to forbidden 
-    if ($exception instanceof AuthorizationException) {
-    return $this->errorResponse($exception->getMessage(), 
-
-   Response::HTTP_FORBIDDEN);
+    if ($exception instanceof AuthorizationException) 
+    {
+        return $this->errorResponse($exception->getMessage(), Response::HTTP_FORBIDDEN);
     }
+
     // unauthorized access
-    if ($exception instanceof AuthenticationException) {
-    return $this->errorResponse($exception->getMessage(), 
-
-   Response::HTTP_UNAUTHORIZED);
+    if ($exception instanceof AuthenticationException) 
+    {
+        return $this->errorResponse($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
     }
+
+    //added 
+    if ($exception instanceof ClientException) 
+    {
+         $message = $exception->getResponse()->getBody();
+         $code = $exception->getCode();
+
+         return $this->errorMessage($message,200);
+    }
+    
 
     // if your are running in development environment 
-    if (env('APP_DEBUG', false)) {
-    return parent::render($request, $exception);
+    if (env('APP_DEBUG', false)) 
+    {
+        return parent::render($request, $exception);
     }
 
     return $this->errorResponse('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
-}
+    
+    }
 }
