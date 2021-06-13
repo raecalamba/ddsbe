@@ -23,9 +23,12 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
-$app->withFacades();
+ $app->withFacades();
 
-$app->withEloquent();
+ $app->withEloquent();
+
+ $app->configure('database');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +40,7 @@ $app->withEloquent();
 | your own bindings here if you like or you can make another file.
 |
 */
-
+//1
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class
@@ -77,7 +80,7 @@ $app->middleware([
 ]);
 
 // $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
+//     'auth' => App\Http\Middleware\AuthenticateAccess::class,
 // ]);
 
 /*
